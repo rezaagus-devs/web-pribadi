@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nama Saya — Web Pribadi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0c100d;
+      --bg2: #10150f;
+      --bg3: #161d15;
+      --accent: #5c7a5c;
+      --accent2: #9caf9c;
+      --text: #eef1ec;
+      --muted: #94a092;
+      --border: rgba(156,175,156,0.22);
+      --card: rgba(22,29,21,0.55);
+      --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.09);
+      --glass-highlight: rgba(255,255,255,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      overflow-x: hidden;
+    }
+
+    /* ambient glow backdrop so the glass has something to refract */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: -1;
+      background:
+        radial-gradient(circle at 15% 15%, rgba(124,156,124,0.22) 0%, transparent 45%),
+        radial-gradient(circle at 85% 35%, rgba(92,122,92,0.24) 0%, transparent 50%),
+        radial-gradient(circle at 25% 65%, rgba(124,156,124,0.16) 0%, transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(92,122,92,0.20) 0%, transparent 50%),
+        radial-gradient(circle at 50% 100%, rgba(124,156,124,0.14) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* reveal-on-scroll */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.7s cubic-bezier(.2,.7,.2,1), transform 0.7s cubic-bezier(.2,.7,.2,1); }
+    .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+    /* LIQUID GLASS base */
+    .glass {
+      background: linear-gradient(155deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      backdrop-filter: blur(13px) saturate(150%);
+      -webkit-backdrop-filter: blur(13px) saturate(150%);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.15);
+      position: relative;
+    }
+    .glass::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.1), transparent);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    /* pop animation for clicks */
+    @keyframes pop-click {
+      0% { transform: scale(1); }
+      35% { transform: scale(0.94); }
+      65% { transform: scale(1.035); }
+      100% { transform: scale(1); }
+    }
+    .pop-anim { animation: pop-click 0.45s cubic-bezier(.34,1.56,.64,1); }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 1.2rem; left: 50%; transform: translateX(-50%); z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 2.5rem;
+      width: min(88vw, 880px);
+      padding: 0.95rem 2rem;
+      border-radius: 999px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.015) 50%, rgba(255,255,255,0.005) 100%);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.25), inset 0 -1px 0 rgba(0,0,0,0.08);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--accent2);
+      letter-spacing: 0.02em;
+    }
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* HERO */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 7rem 6vw 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -200px; right: -100px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(124,156,124,0.13) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-label {
+      font-size: 0.82rem; letter-spacing: 0.18em;
+      color: var(--accent); text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+    .hero-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+    .hero-name span { color: var(--accent2); }
+    .hero-desc {
+      max-width: 520px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+    }
+    .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-block; padding: 0.75rem 1.8rem;
+      border-radius: 999px; font-size: 0.9rem; font-weight: 500;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: transform 0.15s, opacity 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+    .btn:active { transform: scale(0.95); }
+    .btn-primary {
+      background: linear-gradient(155deg, var(--accent2), var(--accent));
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(92,122,92,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+    .btn-outline {
+      background: linear-gradient(155deg, rgba(255,255,255,0.12), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.01) 100%);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(13px) saturate(150%);
+      -webkit-backdrop-filter: blur(13px) saturate(150%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .btn-outline:hover { border-color: var(--accent2); }
+
+    .scroll-hint {
+      position: absolute; bottom: 2.5rem; left: 6vw;
+      display: flex; align-items: center; gap: 0.5rem;
+      color: var(--muted); font-size: 0.8rem;
+    }
+    .scroll-line {
+      width: 32px; height: 1px; background: var(--muted);
+    }
+
+    /* SECTIONS */
+    section { padding: 5rem 6vw; }
+    .section-label {
+      font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.6rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.8rem, 4vw, 2.6rem);
+      margin-bottom: 1rem;
+    }
+    .section-divider {
+      width: 48px; height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin-bottom: 2.5rem;
+    }
+
+    /* ABOUT */
+    #about { background: linear-gradient(180deg, transparent, rgba(19,28,48,0.35), transparent); }
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+    .about-photo {
+      width: 100%;
+      max-width: 220px;
+      aspect-ratio: 1/1;
+      margin: 0 auto;
+      border-radius: 32px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.005) 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.2rem;
+      color: var(--muted);
+      overflow: hidden;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .about-photo:hover { transform: translateY(-3px); }
+    .about-photo:active { animation: pop-click 0.45s cubic-bezier(.34,1.56,.64,1); }
+    .about-photo::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+    .about-text p { color: var(--muted); margin-bottom: 1rem; }
+    .about-text p:first-of-type { color: var(--text); font-size: 1.05rem; }
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.8rem; margin-top: 1.5rem;
+    }
+    .info-item { display: flex; gap: 0.5rem; font-size: 0.88rem; }
+    .info-key { color: var(--muted); min-width: 60px; }
+    .info-val { color: var(--text); }
+
+    /* SKILLS */
+    .skills-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .skill-card {
+      background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.005) 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.1);
+      border-radius: 24px; padding: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .skill-card:hover { transform: translateY(-4px); border-color: var(--accent2); }
+    .skill-card h3 { font-size: 0.95rem; margin-bottom: 1.2rem; }
+    .skill-item { margin-bottom: 1rem; }
+    .skill-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.85rem; color: var(--muted); margin-bottom: 5px;
+    }
+    .skill-row span:last-child { color: var(--accent2); }
+    .bar-bg {
+      height: 5px; background: var(--bg3);
+      border-radius: 99px; overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius: 99px;
+      animation: grow 1s ease both;
+    }
+    @keyframes grow { from { width: 0 !important; } }
+
+    /* PORTFOLIO */
+    #portfolio { background: linear-gradient(180deg, transparent, rgba(19,28,48,0.35), transparent); }
+    .porto-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .porto-card {
+      background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.005) 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(14px) saturate(160%);
+      -webkit-backdrop-filter: blur(14px) saturate(160%);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(0,0,0,0.1);
+      border-radius: 26px; overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .porto-card:hover { transform: translateY(-4px); border-color: var(--accent2); }
+    .porto-card-empty {
+      cursor: default;
+      opacity: 0.55;
+    }
+    .porto-card-empty:hover { transform: none; border-color: rgba(255,255,255,0.22); }
+    .porto-card-empty .porto-thumb { opacity: 0.7; }
+    .porto-thumb {
+      height: 180px;
+      background: rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .porto-body { padding: 1.3rem; }
+    .porto-tag {
+      display: inline-block;
+      font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--accent2);
+      background: rgba(156,175,156,0.14);
+      padding: 3px 10px; border-radius: 99px;
+      margin-bottom: 0.7rem;
+    }
+    .porto-body h3 { font-size: 1rem; margin-bottom: 0.4rem; }
+    .porto-body p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* CONTACT */
+    .contact-wrap {
+      max-width: 600px; margin: 0 auto; text-align: center;
+    }
+    .contact-wrap .section-divider { margin: 0 auto 2.5rem; }
+    .contact-list {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 1rem;
+      margin-top: 2rem;
+    }
+    .contact-link {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.65rem 1.4rem; border-radius: 999px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 45%, rgba(255,255,255,0.005) 100%);
+      border: 1px solid rgba(255,255,255,0.22);
+      backdrop-filter: blur(13px) saturate(150%);
+      -webkit-backdrop-filter: blur(13px) saturate(150%);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1);
+      color: var(--text); text-decoration: none; font-size: 0.9rem;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+    .contact-link:hover { border-color: var(--accent2); transform: translateY(-2px); }
+    .contact-link:active { animation: pop-click 0.45s cubic-bezier(.34,1.56,.64,1); }
+    .contact-link .ico { font-size: 1rem; }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      text-align: center; padding: 2rem 6vw;
+      color: var(--muted); font-size: 0.82rem;
+    }
+
+    /* MODAL POPUP */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      background: rgba(5,7,14,0.6);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      width: 100%; max-width: 480px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04) 45%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.16);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      box-shadow: 0 24px 64px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.24), inset 0 -1px 0 rgba(0,0,0,0.1);
+      border-radius: 32px;
+      padding: 2rem;
+      position: relative;
+      transform: scale(0.85) translateY(20px);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.3s ease;
+    }
+    .modal-overlay.open .modal-box {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+    .modal-close {
+      position: absolute; top: 1.1rem; right: 1.1rem;
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--text); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .modal-close:hover { border-color: var(--accent2); transform: rotate(90deg); }
+    .modal-icon { font-size: 2.6rem; margin-bottom: 1rem; }
+    .modal-box h3 { font-family: 'Playfair Display', serif; font-size: 1.4rem; margin-bottom: 0.8rem; }
+    .modal-box p { color: var(--muted); font-size: 0.92rem; margin-bottom: 0.6rem; }
+    .modal-box .porto-tag { margin-bottom: 0.9rem; }
+
+    /* RESPONSIVE */
+    @media (max-width: 700px) {
+      .about-grid { grid-template-columns: 1fr; }
+      nav { width: 92vw; padding: 0.7rem 1.2rem; gap: 1rem; }
+      .nav-links { gap: 0.9rem; }
+      .nav-links a { font-size: 0.78rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Tentangku.</div>
+  <ul class="nav-links">
+    <li><a href="#about">Tentang</a></li>
+    <li><a href="#skills">Keahlian</a></li>
+    <li><a href="#portfolio">Portofolio</a></li>
+    <li><a href="#contact">Kontak</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <p class="hero-label">Selamat datang di web pribadi saya</p>
+  <h1 class="hero-name">Halo, saya<br><span>REZA</span></h1>
+  <p class="hero-desc">
+    Mahasiswa jurusan Teknik Informatika di Universitas PGRI Ronggolawe Tuban. Saya senang belajar hal baru,
+    membuat proyek, dan terus berkembang di bidang teknologi.
+  </p>
+  <div class="hero-btns">
+    <a href="#portfolio" class="btn btn-primary">Lihat Portofolio</a>
+    <a href="#contact" class="btn btn-outline">Hubungi Saya</a>
+  </div>
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    <span>scroll ke bawah</span>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" class="reveal">
+  <p class="section-label">Tentang Saya</p>
+  <h2 class="section-title">siapakah saya?</h2>
+  <div class="section-divider"></div>
+  <div class="about-grid">
+    <div class="about-photo">🧑‍💻</div>
+    <div class="about-text">
+      <p>
+        Saya adalah mahasiswa aktif yang memiliki ketertarikan di bidang
+        teknologi, pemrograman, dan pengembangan web. Saya percaya bahwa
+        belajar adalah proses yang tidak pernah berhenti.
+      </p>
+      <p>
+        Di luar kuliah, saya suka mengerjakan proyek kecil, membaca, dan
+        mengikuti komunitas mahasiswa. Saya juga aktif mengikuti lomba dan
+        kegiatan kampus.
+      </p>
+      <p>
+        Tujuan saya adalah terus berkembang dan berkontribusi nyata di
+        bidang yang saya geluti.
+      </p>
+      <div class="info-grid">
+        <div class="info-item"><span class="info-key">Nama</span><span class="info-val">Reza Agus Prihatmoko</span></div>
+        <div class="info-item"><span class="info-key">Kota</span><span class="info-val">Tuban, Jawa Timur, Indonesia</span></div>
+        <div class="info-item"><span class="info-key">Jurusan</span><span class="info-val">Teknik Informatika</span></div>
+        <div class="info-item"><span class="info-key">Email</span><span class="info-val">rezaaguss19@gmail.com</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills" class="reveal">
+  <p class="section-label">Keahlian</p>
+  <h2 class="section-title">Apa yang saya bisa?</h2>
+  <div class="section-divider"></div>
+  <div class="skills-grid">
+
+    <div class="skill-card">
+      <h3>💻 Pemrograman</h3>
+      <div class="skill-item">
+        <div class="skill-row"><span>HTML & CSS</span><span>10%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:10%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>JavaScript</span><span>5%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:5%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>C++</span><span>50%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:50%"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-card">
+      <h3>🎨 Desain & Tools</h3>
+      <div class="skill-item">
+        <div class="skill-row"><span>Figma</span><span>20%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:20%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>Canva</span><span>70%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:70%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>Microsoft Office</span><span>80%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:80%"></div></div>
+      </div>
+    </div>
+
+    <div class="skill-card">
+      <h3>🤝 Soft Skills</h3>
+      <div class="skill-item">
+        <div class="skill-row"><span>Kerja Tim</span><span>90%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:90%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>Komunikasi</span><span>80%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:80%"></div></div>
+      </div>
+      <div class="skill-item">
+        <div class="skill-row"><span>Problem Solving</span><span>75%</span></div>
+        <div class="bar-bg"><div class="bar-fill" style="width:75%"></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio" class="reveal">
+  <p class="section-label">Portofolio</p>
+  <h2 class="section-title">Proyek saya</h2>
+  <div class="section-divider"></div>
+  <div class="porto-grid">
+
+    <div class="porto-card" onclick="openProject(this,'sewagedung')">
+      <div class="porto-thumb">🏢</div>
+      <div class="porto-body">
+        <span class="porto-tag">C++</span>
+        <h3>Program Sewa Gedung Sederhana</h3>
+        <p>Membuat program sederhana untuk mengelola penyewaan gedung menggunakan bahasa C++.</p>
+      </div>
+    </div>
+
+    <div class="porto-card porto-card-empty">
+      <div class="porto-thumb">🕓</div>
+      <div class="porto-body">
+        <span class="porto-tag">Segera</span>
+        <h3>Tunggu proyek selanjutnya...</h3>
+        <p>Proyek baru akan ditambahkan di sini.</p>
+      </div>
+    </div>
+
+    <div class="porto-card porto-card-empty">
+      <div class="porto-thumb">🕓</div>
+      <div class="porto-body">
+        <span class="porto-tag">Segera</span>
+        <h3>Tunggu proyek selanjutnya...</h3>
+        <p>Proyek baru akan ditambahkan di sini.</p>
+      </div>
+    </div>
+
+    <div class="porto-card porto-card-empty">
+      <div class="porto-thumb">🕓</div>
+      <div class="porto-body">
+        <span class="porto-tag">Segera</span>
+        <h3>Tunggu proyek selanjutnya...</h3>
+        <p>Proyek baru akan ditambahkan di sini.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="reveal">
+  <div class="contact-wrap">
+    <p class="section-label">Kontak</p>
+    <h2 class="section-title">Hubungi saya</h2>
+    <div class="section-divider"></div>
+    <p style="color:var(--muted);">
+      Jangan ragu untuk menghubungi saya melalui media sosial atau email.
+      Saya terbuka untuk kolaborasi, diskusi, atau sekadar ngobrol!
+    </p>
+    <div class="contact-list">
+      <a href="mailto:email@kamu.com" class="contact-link">
+        <span class="ico">✉️</span> Email
+      </a>
+      <a href="https://linkedin.com" class="contact-link">
+        <span class="ico">💼</span> LinkedIn
+      </a>
+      <a href="https://github.com" class="contact-link">
+        <span class="ico">🐙</span> GitHub
+      </a>
+      <a href="https://instagram.com" class="contact-link">
+        <span class="ico">📸</span> Instagram
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© Terimakasih sudah mengunjungi tentangku</p>
+</footer>
+
+<!-- MODAL POPUP -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) closeProject()">
+  <div class="modal-box" id="modalBox">
+    <button class="modal-close" onclick="closeProject()">✕</button>
+    <div class="modal-icon" id="modalIcon"></div>
+    <span class="porto-tag" id="modalTag"></span>
+    <h3 id="modalTitle"></h3>
+    <p id="modalDesc"></p>
+    <p id="modalExtra" style="color:var(--accent2);"></p>
+  </div>
+</div>
+
+<script>
+  // --- Scroll reveal ---
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('in-view');
+    });
+  }, { threshold: 0.15 });
+  revealEls.forEach(el => observer.observe(el));
+
+  // --- Click pop animation helper ---
+  function popClick(el) {
+    el.classList.remove('pop-anim');
+    void el.offsetWidth; // restart animation
+    el.classList.add('pop-anim');
+  }
+  document.querySelectorAll('.skill-card, .contact-link, .about-photo, .btn').forEach(el => {
+    el.addEventListener('click', () => popClick(el));
+  });
+
+  // --- Portfolio modal data ---
+  const projectData = {
+    sewagedung: {
+      icon: '🏢', tag: 'C++',
+      title: 'Program Sewa Gedung Sederhana',
+      desc: 'Membuat program sederhana untuk mengelola penyewaan gedung menggunakan bahasa C++.',
+      extra: 'Tools: C++'
+    }
+  };
+
+  function openProject(cardEl, key) {
+    popClick(cardEl);
+    const data = projectData[key];
+    if (!data) return;
+    document.getElementById('modalIcon').textContent = data.icon;
+    document.getElementById('modalTag').textContent = data.tag;
+    document.getElementById('modalTitle').textContent = data.title;
+    document.getElementById('modalDesc').textContent = data.desc;
+    document.getElementById('modalExtra').textContent = data.extra;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProject() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeProject();
+  });
+</script>
+
+</body>
+</html>
